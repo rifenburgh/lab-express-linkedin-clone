@@ -40,5 +40,37 @@ router.post('/signup', (req, res, next) => {
     res.redirect('/');
   });
 });
+router.get('/login', (req, res, next) => {
+  res.render('authentication/login.ejs');
+});
+router.post('/post', (req, res, next) => {
+  const username = req.body.username;
+  const password = req.body.passowrd;
 
+  if (username === '' || password === '') {
+    res.render('authentication/login.ejs', {
+      errorMessage: 'Username/Password cannot be blank.'
+    });
+  }
+  User.findOne({username: username}, (err, user) => {
+    if (err) {
+      next(err);
+      return;
+    }
+    if (!user) {
+      res.render('authentication/login.ejs', {
+        errorMessage: 'The username does not exist.'
+      });
+      return;
+    }
+    if (bcrypt.compareSync(password, user.password)) {
+      req.session.currentUser = user;
+      res.redirect('/');
+    } else {
+      res.render('authentication/login.ejs', {
+        errorMessage: 'The password is incorrect.'
+      });
+    }
+  });
+});
 module.exports = router;

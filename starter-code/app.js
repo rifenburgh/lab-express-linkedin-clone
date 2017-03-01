@@ -1,11 +1,13 @@
-var express      = require('express');
-var path         = require('path');
-var favicon      = require('serve-favicon');
-var logger       = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser   = require('body-parser');
-const layouts      = require('express-ejs-layouts');
-const mongoose   = require('mongoose');
+var express           = require('express');
+var path              = require('path');
+var favicon           = require('serve-favicon');
+var logger            = require('morgan');
+var cookieParser      = require('cookie-parser');
+var bodyParser        = require('body-parser');
+const layouts         = require('express-ejs-layouts');
+const mongoose        = require('mongoose');
+const sessions        = require('express-session');
+const MongoStore      = require('connect-mongo')(sessions);
 
 mongoose.connect('mongodb://localhost/W5D2E2');
 
@@ -29,6 +31,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(layouts);
+app.use(sessions({
+  secret: 'Sessions are complicated.',
+  cookie: {maxAge: 60000},  //setting to NULL, the cookie lasts forever (i.e. Facebook)
+    store: new MongoStore({
+      mongooseConnection: mongoose.connection,
+      ttl: 24 * 60 * 60
+    })
+  })
+);
 
 app.use('/', index);
 app.use('/users', users);
